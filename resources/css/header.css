@@ -1,0 +1,25 @@
+.header {
+  grid-area: header;
+  background: #493971;
+  padding: 30px;
+  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr auto;
+}
+
+.header-title {
+  color: #FFF;
+  font-size: 32px;
+  font-weight: 700;
+
+}
+
+.header-search form {
+  background: #FFF;
+  border-radius: 4px;
+  padding: 5px;
+}
+
+.header-search input {
+  border: none;
+}

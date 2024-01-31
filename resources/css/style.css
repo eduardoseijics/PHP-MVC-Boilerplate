@@ -1,0 +1,7 @@
+@import url('header.css');
+@import url('footer.css');
+
+body {
+  font-family: 'Helvetica Neue', sans-serif;
+  background: var(--background-color);
+}
