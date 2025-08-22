@@ -7,38 +7,37 @@ use Exception;
 use App\Http\Request;
 use ReflectionFunction;
 use App\Http\PageNotFound;
-use App\Controller\Pages\Page;
 use App\Http\Middlewares\Queue as MiddlewareQueue;
 
 class Router {
 
   /**
-   * URL completa do projeto (raiz)
+   * Url
    * @var string
    */
   private $url = '';
 
   /**
-   * Prefixo de todas as rotas
+   * Route prefix
    * @var string
    */
   private $prefix = '';
 
   
   /**
-   * Modulo atual
+   * Route package
    * @var string
    */
   private $package = '';
 
   /**
-   * Índice de rotas
+   * Route definitions
    * @var array
    */
   private $routes = [];
 
   /**
-   * Instância de Request
+   * Http request
    * @var Request
    */
   private $request;
@@ -51,15 +50,22 @@ class Router {
   }
 
   /**
-   * Método responsável por definir o prefixo das rotas
+   * Set route prefix
+   * @return void
    */
-  private function setPrefix() {
+  private function setPrefix(): void
+  {
     $parseUrl = parse_url($this->url);
 
     $this->prefix = $parseUrl['path'] ?? '';
   }
 
-  public function setPackage() {
+  /**
+   * Set the route package
+   * @return void
+   */
+  public function setPackage(): void
+  {
     $xUri = explode('/', $this->getUri());
     unset($xUri[0]);
 
@@ -76,7 +82,7 @@ class Router {
    * @param array $params
    */
   private function addRoute($method, $route, $params = []) {
-    // VALIDAÇÃO DOS PARÂMETROS 
+
     foreach ($params as $key => $value) {
       if($value instanceof Closure) {
         $params['controller'] = $value;
@@ -102,50 +108,55 @@ class Router {
   }
 
   /**
-   * Responsável por definir uma rota de GET
+   * Add a GET route
    * @param string $route
    * @param array $params
    * @return void
    */
-  public function get($route, $params = []) {
+  public function get($route, $params = []): null
+  {
     return $this->addRoute('GET', $route, $params);
   }
 
   /**
-   * Responsável por definir uma rota de POST
+   * Add a POST route
    * @param string $route
    * @param array $params
    * @return void
    */
-  public function post($route, $params = []) {
+  public function post($route, $params = []): null
+  {
     return $this->addRoute('POST', $route, $params);
   }
 
   /**
-   * Responsável por definir uma rota de PUT
+   * Add a PUT route
    * @param string $route
    * @param array $params
    * @return void
    */
-  public function put($route, $params = []) {
+  public function put($route, $params = []): null
+  {
     return $this->addRoute('PUT', $route, $params);
   }
 
   /**
-   * Responsável por definir uma rota de DELETE
+   * Add a DELETE route
    * @param string $route
    * @param array $params
    * @return void
    */
-  public function delete($route, $params = []) {
+  public function delete($route, $params = []): null
+  {
     return $this->addRoute('DELETE', $route, $params);
   }
 
   /**
-   * Responsável por retornar a URI desconsiderando o prefixo
+   * 
    * @return string
    */
-  private function getUri() {
+  private function getUri(): string
+  {
     $uri = $this->request->getUri();
     $xUri = strlen($this->prefix) ? explode($this->prefix, $uri) : [$uri];
 
@@ -153,29 +164,30 @@ class Router {
   }
 
   /**
-   * Responsável por retornar os dados da rota atual
+   * Get the current route
    * @return  array
    */
-  private function getRoute() {
+  private function getRoute(): array
+  {
     $uri = $this->getUri();
 
     $httpMethod = $this->request->getHttpMethod();
 
     foreach ($this->routes as $patternRoute => $methods) {
       if(preg_match($patternRoute, $uri, $matches)) {
-        //VERIFICA O METODO
+        // Check if the HTTP method is allowed
         if(isset($methods[$httpMethod])) {
           unset($matches[0]);
 
-          //VARIAVEIS PROCESSADAS 
-          $keys = $methods[$httpMethod]['variables'];
-          $methods[$httpMethod]['variables'] = array_combine($keys, $matches);
+          // Map variables
+          $keys                                         = $methods[$httpMethod]['variables'];
+          $methods[$httpMethod]['variables']            = array_combine($keys, $matches);
           $methods[$httpMethod]['variables']['request'] = $this->request;
 
           return $methods[$httpMethod];
         }
 
-        throw new Exception('Método não é permitido', Response::HTTP_METHOD_NOT_ALLOWED);
+        throw new Exception('Method not allowed', Response::HTTP_METHOD_NOT_ALLOWED);
       }
     }
 
@@ -187,10 +199,11 @@ class Router {
   }
 
   /**
-   * Método responsável por executar a rota atual
+   * 
    * @return Response
    */
-  public function run() {
+  public function run(): Response
+  {
     try {
       $route = $this->getRoute();
       
@@ -215,25 +228,24 @@ class Router {
   }
 
 /**
- * Retorna o URL atual
  *
  * @return string
  */
-  public function getCurrentUrl() {
+  public function getCurrentUrl(): string {
     return $this->url . $this->getUri();
   }
 
   /**
-   * Redirecionar URL
+   * 
    *
-   * @param string $route Endpoint para redirecionamento
+   * @param string $route
    * @return void
    */
   public function redirect($route)
   {
     $fullUrl = $this->url . $route;
 
-    // Executa o redirect
+    // 
     header("location: {$fullUrl}");
     exit;
   }

@@ -8,7 +8,7 @@ class View {
    * Variáveis padrões da View
    * @var array
    */
-  private static $vars; 
+  private static array $vars; 
 
   public static function init($vars = []) {
     self::$vars = $vars;
@@ -24,6 +24,7 @@ class View {
   }
 
   /**
+   * Render a template
    * @param string $view
    * @return string
    */
@@ -31,7 +32,7 @@ class View {
 
     $contentView = self::getContentView($view);
 
-    // MERGE DE VARIAVEIS DA VIEW
+    // DEFAULT VARS
     $vars = array_merge(self::$vars, $vars);
 
     $keys = array_keys($vars);

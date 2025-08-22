@@ -3,4 +3,4 @@ RewriteEngine on
 
 # Regra para o index
 RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^(.*)$ index.php [QSA,NC]
+RewriteRule ^(.*)$ ./index.php [QSA,NC]

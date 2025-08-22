@@ -53,25 +53,25 @@ class Response {
   const HTTP_INTERNAL_SERVER_ERROR           = 500;
 
   /**
-   * Código do status HTTP
+   * Http status code
    * @var integer
    */
   private $httpCode = 200;
 
   /**
-   * Cabeçalhos do response
+   * Http headers
    * @var array
    */
   private $headers = [];
 
   /**
-   * Tipo do conteudo que está sendo retornado
+   * Content type of the response
    * @var string
    */
   private $contentType = 'text/html';
 
   /**
-   * Conteúdo do Response
+   * Response content
    * @var mixed
    */
   private $content;
@@ -82,33 +82,40 @@ class Response {
    * @param string $contentType
    * @return mixed
    */
-  public function __construct($httpCode, $content, $contentType = 'text/html') {
+  public function __construct($httpCode, $content, $contentType = 'text/html')
+  {
     $this->httpCode = $httpCode;
     $this->content = $content;
     $this->setContentType($contentType);
   }
 
   /**
-   * Método responsável por alterar o content type do response
+   * Set the content type of the response
+   * @param string $contentType
+   * @return void
    */
-  public function setContentType($contentType) {
+  public function setContentType(string $contentType): void
+  {
     $this->contentType = $contentType;
     $this->addHeader('Content-Type', $contentType);
   }
 
   /**
-   * Método responsável por adicionar um registro no cabeçalho de response
+   * Add a header to the response
    * @param string $key
    * @param string $value
    */
-  public function addHeader($key, $value) {
+  public function addHeader(string $key, string $value): void
+  {
     $this->headers[$key] = $value;
   }
 
   /**
-   * Método responsável por enviar a resposta para o usuário
+   * Send the response to the user
+   * @return void
    */
-  public function sendResponse() {
+  public function sendResponse(): void
+  {
     $this->sendHeaders();
     switch ($this->contentType) {
       case 'text/html':
@@ -117,11 +124,16 @@ class Response {
     }
   }
 
-  private function sendHeaders() {
+  /**
+   * Send the headers for the response
+   * @return void
+   */
+  private function sendHeaders(): void
+  {
     //STATUS
     http_response_code($this->httpCode);
 
-    //ENVIAR HEADERS
+    //HEADERS
     foreach ($this->headers as $key => $value) {
       header($key.':'.$value);
     }

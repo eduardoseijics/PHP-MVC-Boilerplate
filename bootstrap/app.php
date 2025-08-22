@@ -19,7 +19,6 @@ if(getenv('APP_DEBUG')) {
   error_reporting(E_ALL);
 }
 
-
 Database::config(
   getenv('DB_HOST'),
   getenv('DB_NAME'),

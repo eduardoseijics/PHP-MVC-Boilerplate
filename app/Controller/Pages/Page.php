@@ -17,19 +17,17 @@ class Page {
     return View::render('pages/components/footer');
   }
 
-  public static function getPage($content, $title = '') {
+  public static function getPage($content, $title = 'PHP MVC Boilerplate') {
 		return View::render('pages/base', [
 			'title' => $title,
-			'content' => $content,
 			'header' => self::getHeader(),
+			'content' => $content,
 			'footer' => self::getFooter()
 		]);
   }
 
   public static function getStaticPage($path, $title = '') {
-        
     $content = View::render($path);
     return self::getPage($content, $title);
   }
-
 }
