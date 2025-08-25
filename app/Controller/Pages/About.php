@@ -7,6 +7,10 @@ use App\Model\Entity\Organization;
 
 class About extends Page {
 
+  /**
+   * Get about content
+   * @return string
+   */
   public static function getAbout(): string
   {
 

@@ -2,182 +2,176 @@
 
 namespace App\Core;
 
-use \PDO;
-use \PDOException;
+use PDO;
+use PDOException;
+use PDOStatement;
 
-class Database{
+class Database
+{
+  /** @var string Database host */
+  private static string $host;
 
-  /**
-   * Host de conexão com o banco de dados
-   * @var string
-   */
-  private static $host;
+  /** @var string Database name */
+  private static string $dbName;
 
-  /**
-   * Nome do banco de dados
-   * @var string
-   */
-  private static $name;
+  /** @var string Database username */
+  private static string $username;
 
-  /**
-   * Usuário do banco
-   * @var string
-   */
-  private static $user;
+  /** @var string Database password */
+  private static string $password;
 
-  /**
-   * Senha de acesso ao banco de dados
-   * @var string
-   */
-  private static $pass;
+  /** @var int Database port */
+  private static int $port = 3306;
 
-  /**
-   * Porta de acesso ao banco
-   * @var integer
-   */
-  private static $port;
+  /** @var string Database charset */
+  private static string $charset = 'utf8mb4';
+
+  /** @var PDO|null Connection instance */
+  private static ?PDO $connection = null;
+
+  /** @var string|null Table name */
+  private ?string $table = null;
 
   /**
-   * Nome da tabela a ser manipulada
-   * @var string
+   * Configure the database connection (static)
+   * @param string $host
+   * @param string $dbName
+   * @param string $username
+   * @param string $password
+   * @param int $port
+   * @param string $charset
    */
-  private $table;
-
-  /**
-   * Instancia de conexão com o banco de dados
-   * @var PDO
-   */
-  private $connection;
-
-  /**
-   * Método responsável por configurar a classe
-   * @param  string  $host
-   * @param  string  $name
-   * @param  string  $user
-   * @param  string  $pass
-   * @param  integer $port
-   */
-  public static function config($host,$name,$user,$pass,$port = 3306){
+  public static function config(
+    string $host,
+    string $dbName,
+    string $username,
+    string $password,
+    int $port = 3306,
+    string $charset = 'utf8mb4'
+  ): void {
     self::$host = $host;
-    self::$name = $name;
-    self::$user = $user;
-    self::$pass = $pass;
-    self::$port = $port;
+    self::$dbName   = $dbName;
+    self::$username = $username;
+    self::$password = $password;
+    self::$port     = $port;
+    self::$charset  = $charset;
   }
 
   /**
-   * Define a tabela e instancia e conexão
-   * @param string $table
+   * Constructor: set table name
    */
-  public function __construct($table = null){
+  public function __construct(string $table)
+  {
     $this->table = $table;
-    $this->setConnection();
+    $this->connect();
   }
 
   /**
-   * Método responsável por criar uma conexão com o banco de dados
+   * Establish PDO connection (only once)
+   * @return void
    */
-  private function setConnection(){
-    try{
-      $this->connection = new PDO('mysql:host='.self::$host.';dbname='.self::$name.';port='.self::$port.';charset=utf8',self::$user,self::$pass);
-      $this->connection->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
-    }catch(PDOException $e){
-      echo '<pre>'; print_r($e); echo '</pre>';exit;
-      die('ERROR: '.$e->getMessage());
+  private function connect(): void
+  {
+    if (self::$connection === null) {
+      $dsn = sprintf(
+        'mysql:host=%s;dbname=%s;port=%d;charset=%s',
+        self::$host,
+        self::$dbName,
+        self::$port,
+        self::$charset
+      );
+
+      try {
+        self::$connection = new PDO($dsn, self::$username, self::$password, [
+          PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+          PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+          PDO::ATTR_EMULATE_PREPARES => false,
+        ]);
+      } catch (PDOException $e) {
+        error_log('Database connection error: ' . $e->getMessage());
+        throw new PDOException('Internal server error while connecting to the database.');
+      }
     }
   }
 
   /**
-   * Método responsável por executar queries dentro do banco de dados
-   * @param  string $query
-   * @param  array  $params
+   * Execute a query with parameters
+   * @param string $query
+   * @param array $params
    * @return PDOStatement
    */
-  public function execute($query,$params = []){
-    try{
-      $statement = $this->connection->prepare($query);
-      $statement->execute($params);
-      return $statement;
-    }catch(PDOException $e){
-      die('ERROR: '.$e->getMessage());
-    }
+  public function execute(string $query, array $params = []): PDOStatement
+  {
+    $stmt = self::$connection->prepare($query);
+    $stmt->execute($params);
+    return $stmt;
   }
 
   /**
-   * Método responsável por inserir dados no banco
-   * @param  array $values [ field => value ]
-   * @return integer ID inserido
+   * Insert data into table
+   * @param array $data
+   * @return int
+   * @throws PDOException
    */
-  public function insert($values){
-    //DADOS DA QUERY
-    $fields = array_keys($values);
-    $binds  = array_pad([],count($fields),'?');
+  public function insert(array $data): int
+  {
+    $fields = array_keys($data);
+    $placeholders = implode(',', array_fill(0, count($fields), '?'));
 
-    //MONTA A QUERY
-    $query = 'INSERT INTO '.$this->table.' ('.implode(',',$fields).') VALUES ('.implode(',',$binds).')';
+    $sql = sprintf('INSERT INTO %s (%s) VALUES (%s)', $this->table, implode(',', $fields), $placeholders);
 
-    //EXECUTA O INSERT
-    $this->execute($query,array_values($values));
+    $this->execute($sql, array_values($data));
 
-    //RETORNA O ID INSERIDO
-    return $this->connection->lastInsertId();
+    return (int) self::$connection->lastInsertId();
   }
 
   /**
-   * Método responsável por executar uma consulta no banco
-   * @param  string $where
-   * @param  string $order
-   * @param  string $limit
-   * @param  string $fields
-   * @return PDOStatement
+   * Select data from table
+   * @param string $where
+   * @param array $params
+   * @param string $fields
+   * @param string $order
+   * @param string $limit
    */
-  public function select($where = null, $order = null, $limit = null, $fields = '*'){
-    //DADOS DA QUERY
-    $where = ($where) ? 'WHERE '.$where : '';
-    $order = ($order) ? 'ORDER BY '.$order : '';
-    $limit = ($limit) ? 'LIMIT '.$limit : '';
+  public function select(
+    ?string $where = null,
+    array $params = [],
+    string $fields = '*',
+    ?string $order = null,
+    ?string $limit = null
+  ) {
+    $sql = "SELECT $fields FROM {$this->table}";
+    if ($where) $sql .= " WHERE $where";
+    if ($order) $sql .= " ORDER BY $order";
+    if ($limit) $sql .= " LIMIT $limit";
 
-    //MONTA A QUERY
-    $query = 'SELECT '.$fields.' FROM '.$this->table.' '.$where.' '.$order.' '.$limit;
-
-    //EXECUTA A QUERY
-    return $this->execute($query);
+    return $this->execute($sql, $params);
   }
 
   /**
-   * Método responsável por executar atualizações no banco de dados
-   * @param  string $where
-   * @param  array $values [ field => value ]
-   * @return boolean
+   * Update records in table
+   * @param string $where
+   * @param array $data
+   * @param array $params
+   * @return int
    */
-  public function update($where,$values){
-    //DADOS DA QUERY
-    $fields = array_keys($values);
+  public function update(string $where, array $data, array $params = []): int
+  {
+    $fields = implode('=?,', array_keys($data)) . '=?';
+    $sql = "UPDATE {$this->table} SET $fields WHERE $where";
 
-    //MONTA A QUERY
-    $query = 'UPDATE '.$this->table.' SET '.implode('=?,',$fields).'=? WHERE '.$where;
-
-    //EXECUTAR A QUERY
-    $this->execute($query,array_values($values));
-
-    //RETORNA SUCESSO
-    return true;
+    return $this->execute($sql, array_merge(array_values($data), $params))->rowCount();
   }
 
   /**
-   * Método responsável por excluir dados do banco
-   * @param  string $where
-   * @return boolean
+   * Delete records from table
+   * @param string $where
+   * @param array $params
+   * @return int
    */
-  public function delete($where){
-    //MONTA A QUERY
-    $query = 'DELETE FROM '.$this->table.' WHERE '.$where;
-
-    //EXECUTA A QUERY
-    $this->execute($query);
-
-    //RETORNA SUCESSO
-    return true;
+  public function delete(string $where, array $params = []): int
+  {
+    $sql = "DELETE FROM {$this->table} WHERE $where";
+    return $this->execute($sql, $params)->rowCount();
   }
-
 }

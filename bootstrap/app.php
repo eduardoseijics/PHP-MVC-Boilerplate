@@ -13,12 +13,14 @@ use \App\Http\Middlewares\Queue as MiddlewareQueue;
 
 Environment::load(__DIR__.'/../');
 
+// Debugging settings
 if(getenv('APP_DEBUG')) {
   ini_set('display_errors', 1); 
   ini_set('display_startup_errors', 1); 
   error_reporting(E_ALL);
 }
 
+// Database configuration
 Database::config(
   getenv('DB_HOST'),
   getenv('DB_NAME'),
@@ -27,13 +29,12 @@ Database::config(
   getenv('DB_PORT')
 );
 
+// Define constants
 define('ROOT', dirname(__DIR__));
-
 define('URL', getenv('BASE_URL'));
-
 define('URL_ADMIN', getenv('BASE_URL').'/admin');
 
-// Definindo o mapeamento de middlewares
+// Middlewares setup
 MiddlewareQueue::setMap([
   'required-admin-logout'      => RequireAdminLogout::class,
   'required-admin-login'       => RequireAdminLogin::class,

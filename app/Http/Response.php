@@ -56,7 +56,7 @@ class Response {
    * Http status code
    * @var integer
    */
-  private $httpCode = 200;
+  private int $httpCode = 200;
 
   /**
    * Http headers
@@ -118,9 +118,10 @@ class Response {
   {
     $this->sendHeaders();
     switch ($this->contentType) {
-      case 'text/html':
+      case 'text/html':        
         echo $this->content;
         exit;
+        
     }
   }
 
@@ -138,4 +139,6 @@ class Response {
       header($key.':'.$value);
     }
   }
+
+  
 }
