@@ -5,37 +5,37 @@ namespace App\Http;
 class Request {
 
   /**
-   * Método HTTP da requisição
+   * 
    * @var string
    */
   private $router;
 
   /**
-   * Método HTTP da requisição
+   * 
    * @var string
    */
   private $httpMethod;
 
   /**
-   * URI da página
+   * 
    * @var string
    */
   private $uri;
 
   /**
-   * Parâmetros da URL ($_GET)
+   * 
    * @var array
    */
   private $queryParams = [];
 
   /**
-   * Váriaveis recebidas no POST da página ($_POST)
+   * 
    * @var array
    */
   private $postVars = [];
 
   /**
-   * Cabeçalho da requisição
+   * Request headers
    * @var array
    */
   private $headers = [];
@@ -50,7 +50,7 @@ class Request {
   }
 
   /**
-   * Define URI
+   * Set the URI of the request
    * @return void
    */
   private function setUri() {
@@ -71,7 +71,6 @@ class Request {
 
   /**
    * Get the instance of the Router class used by the request
-   *
    * @return Router
    */
   public function getRouter() {

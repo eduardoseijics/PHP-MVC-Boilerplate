@@ -26,6 +26,12 @@ class Page {
 		]);
   }
 
+  /**
+   * Get a static page
+   * @param string $path
+   * @param string $title
+   * @return string
+   */
   public static function getStaticPage($path, $title = '') {
     $content = View::render($path);
     return self::getPage($content, $title);

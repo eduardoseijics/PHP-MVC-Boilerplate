@@ -110,7 +110,7 @@ class Testimonial
   public static function getTestimonials($where = null, $params = [], $order = null, $limit = null, $fields = '*'): array
   {
     $obDatabaseTestimonial = new Database('testimonials');
-    return $obDatabaseTestimonial->select($where,$params, $fields, $order, $limit)->fetchAll(PDO::FETCH_CLASS, Testimonial::class);
+    return $obDatabaseTestimonial->select($where, $params, $fields, $order, $limit)->fetchAll(PDO::FETCH_CLASS, Testimonial::class);
   }
 
   /**
@@ -119,12 +119,25 @@ class Testimonial
    */
   public function insert(): bool
   {
-      $obDatabaseTestimonial = new Database('testimonials');
-      $obDatabaseTestimonial->insert([
-          'name'    => $this->name,
-          'message' => $this->message,
-          'date'    => $this->date
-      ]);
-      return true;
+    $obDatabaseTestimonial = new Database('testimonials');
+    $obDatabaseTestimonial->insert([
+      'name'    => $this->name,
+      'message' => $this->message,
+      'date'    => $this->date
+    ]);
+    return true;
+  }
+
+  /**
+   * Get the total number of testimonials
+   * @return int
+   */
+  public function getTestimonialsCount(): int
+  {
+    $obDatabaseTestimonial = new Database('testimonials');
+    return (int) $obDatabaseTestimonial
+      ->select(fields: 'COUNT(*) as total')
+      ->fetchObject()
+      ->total;
   }
 }

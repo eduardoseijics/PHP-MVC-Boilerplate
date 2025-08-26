@@ -19,8 +19,8 @@ $obRouter->get('/about', [
 ]);
 
 $obRouter->get('/testimonials', [
-  function() {
-    return new Response(Response::HTTP_OK, TestimonialController::renderTestimonials());
+  function(Request $request) {
+    return new Response(Response::HTTP_OK, TestimonialController::renderTestimonials($request));
   }
 ]);
 

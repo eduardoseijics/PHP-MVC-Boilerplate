@@ -228,7 +228,7 @@ class Router {
   }
 
 /**
- *
+ * Get the current URL
  * @return string
  */
   public function getCurrentUrl(): string {
@@ -236,8 +236,7 @@ class Router {
   }
 
   /**
-   * 
-   *
+   * Redirect to a different route
    * @param string $route
    * @return void
    */
