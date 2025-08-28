@@ -2,7 +2,7 @@
 
 namespace App\Core;
 
-class Paginacao{
+class Pagination{
 
   /**
    * Número máximo de registros por página
@@ -34,7 +34,7 @@ class Paginacao{
    * @param integer  $currentPage
    * @param integer  $limit
    */
-  public function __construct($results,$currentPage = 1,$limit = 10){
+  public function __construct($results,$currentPage = 1,$limit = 5){
     $this->results     = $results;
     $this->limit       = $limit;
     $this->currentPage = (is_numeric($currentPage) and $currentPage > 0) ? $currentPage : 1;

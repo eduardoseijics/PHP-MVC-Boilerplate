@@ -5,39 +5,39 @@ namespace App\Core;
 class Environment {
 
   /**
-   * Método responsável por carregar as variáveis de ambiente do projeto
-   * @param string $dir Caminho absoluto da pasta onde encontra-se o arquivo .env
+   * Load environment variables from .env file
+   * @param string $dir Absolute path to the directory containing the .env file
    * @return void
    */
   public static function load($dir){
-    //VERIFICA SE O ARQUIVO .ENV EXISTE
+    // Check if the .env file exists
     if(!file_exists($dir.'/.env')){
       return false;
     }
 
-    //DEFINE AS VARIÁVEIS DE AMBIENTE
-    $linhas = file($dir.'/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    // Define environment variables
+    $lines = file($dir.'/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
-    $linhas = self::sanitizaLinhasEnv($linhas);
+    $lines = self::sanitizeEnvLines($lines);
 
-    foreach($linhas as $linha){
-      putenv(trim($linha));
+    foreach($lines as $line){
+      putenv(trim($line));
     }
   }
 
   /**
-   * Responsavel por remover os comentarios e linhas em branco do array
-   * @param array $linhas
+   * Remove comments and empty lines from the array
+   * @param array $lines
    * @return array
    */
-  public static function sanitizaLinhasEnv(array $linhas) {
-    $linhasSanitizadas = array_map('trim', $linhas);
-    $linhasSanitizadas = array_filter($linhasSanitizadas);
+  public static function sanitizeEnvLines(array $lines) {
+    $sanitizedLines = array_map('trim', $lines);
+    $sanitizedLines = array_filter($sanitizedLines);
 
-    $linhasSemComentarios = array_filter($linhasSanitizadas, function($linha) {      
-      return (strpos(trim($linha), '#') !== 0);
+    $linesWithoutComments = array_filter($sanitizedLines, function($line) {
+      return (strpos(trim($line), '#') !== 0);
     });
 
-    return $linhasSemComentarios;
+    return $linesWithoutComments;
   }
 }

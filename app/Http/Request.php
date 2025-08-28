@@ -5,37 +5,37 @@ namespace App\Http;
 class Request {
 
   /**
-   * Método HTTP da requisição
+   * 
    * @var string
    */
   private $router;
 
   /**
-   * Método HTTP da requisição
+   * 
    * @var string
    */
   private $httpMethod;
 
   /**
-   * URI da página
+   * 
    * @var string
    */
   private $uri;
 
   /**
-   * Parâmetros da URL ($_GET)
+   * 
    * @var array
    */
   private $queryParams = [];
 
   /**
-   * Váriaveis recebidas no POST da página ($_POST)
+   * 
    * @var array
    */
   private $postVars = [];
 
   /**
-   * Cabeçalho da requisição
+   * Request headers
    * @var array
    */
   private $headers = [];
@@ -50,19 +50,19 @@ class Request {
   }
 
   /**
-   * Definir URI
+   * Set the URI of the request
    * @return void
    */
   private function setUri() {
-    // URI completo (com parâmetros)
+
     $fullUri = $_SERVER['REQUEST_URI'] ?? '';
 
-    // Removendo parâmetros do URI
+    // Removing parameters from the URI
     $this->uri = explode('?', $fullUri)[0];
   }
 
   /**
-   * Método responsável por retornar o método HTTP da requisição
+   * Get HTTP method
    * @return string
    */
   public function getHttpMethod() {
@@ -70,8 +70,7 @@ class Request {
   }
 
   /**
-   * Retorna a instância da classe Router utilizada pelo request
-   *
+   * Get the instance of the Router class used by the request
    * @return Router
    */
   public function getRouter() {
@@ -79,7 +78,7 @@ class Request {
   }
 
   /**
-   * Método responsável por retornar o método HTTP da requisição
+   * Get the URI of the request
    * @return string
    */
   public function getUri() {
@@ -87,7 +86,7 @@ class Request {
   }
 
   /**
-   * Método responsável por retornar as variáveis POST da requisição
+   * Get the POST variables from the request
    * @return array
    */
   public function getPostVars() {
@@ -95,7 +94,7 @@ class Request {
   }
   
   /**
-   * Método responsável por retornar os parâmetros da URL da requisição
+   * Get the query parameters from the request
    * @return array
    */
   public function getQueryParams() {
@@ -104,7 +103,7 @@ class Request {
 
   
   /**
-   * Método responsável por retornar os headers da requisição
+  * Get the headers from the request
    * @return string
    */
   public function getHeaders() {
