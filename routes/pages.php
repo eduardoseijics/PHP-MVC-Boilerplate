@@ -7,6 +7,9 @@ use App\Controller\Pages\About;
 use App\Controller\Pages\TestimonialController;
 
 $obRouter->get('/', [
+  'middlewares' => [
+    'maintenance'
+  ],
   function() {
     return new Response(Response::HTTP_OK, Home::getHome());
   }

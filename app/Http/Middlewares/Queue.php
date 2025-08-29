@@ -2,104 +2,145 @@
 
 namespace App\Http\Middlewares;
 
+use Closure;
+use Exception;
 use App\Http\Request;
 use App\Http\Response;
-use Closure;
 
+/**
+ * Represents the queue of middlewares to be executed.
+ */
 class Queue
 {
   /**
-   * Middlewares padrões para todas as rotas
-   * @var array
+   * Default middlewares applied to all routes.
+   * @var array<string>
    */
-  private static $defaultMiddlewares = [];
+  private static array $defaultMiddlewares = [];
 
   /**
-   * Fila de middlewares a serem 
-   *
-   * @var array
+   * Middlewares to be executed in the current queue.
+   * @var array<string>
    */
-  private $middlewares = [];
+  private array $middlewares = [];
 
   /**
-   * Função de execução do controlador
-   *
+   * The controller action to be executed at the end of the queue.
    * @var Closure
    */
-  private $controller;
+  private Closure $controller;
 
   /**
-   * Argumentos da função do controlador
-   *
+   * Arguments to pass to the controller.
    * @var array
    */
-  private $controllerArgs = [];
-
-
-  /**
-   * Mapeamento de middlewares
-   *
-   * @var array
-   */
-  private static $map = [];
+  private array $controllerArgs = [];
 
   /**
-   * Construtor da classe de fila de middlewares
-   *
-   * @param  array $middlewares
-   * @param  Closure $controller
-   * @param  array $controllerArgs
-   * @return void
+   * Map of all available middlewares (name => class).
+   * @var array<string, string>
    */
-  public function __construct($middlewares, $controller, $controllerArgs) {
+  private static array $map = [];
+
+  /**
+   * Queue constructor.
+   * @param array<string> $middlewares
+   * @param Closure $controller
+   * @param array $controllerArgs
+   */
+  public function __construct(array $middlewares, Closure $controller, array $controllerArgs = [])
+  {
     $this->middlewares = array_merge(self::$defaultMiddlewares, $middlewares);
     $this->controller = $controller;
     $this->controllerArgs = $controllerArgs;
   }
 
   /**
-   * Executar o próximo nível da fila de middlewares
-   *
+   * Executes the next middleware in the queue or the controller if the queue is empty.
    * @param Request $request
    * @return Response
+   * @throws Exception
    */
-  public function next($request) {
-    if (empty($this->middlewares)) return call_user_func_array($this->controller, $this->controllerArgs);
-
-    // Deslocando o primeiro middleware do array para a variável
-    $middleware = array_shift($this->middlewares);
-
-    // Verificando se o middleware existe
-    if (!isset(self::$map[$middleware])) {
-      throw new \Exception("Problemas ao processar o middleware da requisição", 500);
+  public function next(Request $request): Response
+  {
+    // If the middleware queue is empty, execute the controller.
+    if (empty($this->middlewares)) {
+      return $this->runController();
     }
 
-    $queue = $this;
-    $next = function ($request) use ($queue) {
-      return $queue->next($request);
-    };
+    // Get the name of the next middleware.
+    $middleware = array_shift($this->middlewares);
 
-    //
-    return (new self::$map[$middleware])->handle($request, $next);
+    // Resolve the middleware instance and execute the handle method.
+    $instance = $this->resolveMiddleware($middleware);
+
+    return $instance->handle($request, fn(Request $req) => $this->next($req));
   }
 
   /**
-   * Definir o mapeamento de middlewares
-   *
-   * @param  array $map
-   * @return void
+   * Resolves and returns a middleware instance.
+   * @param string $middlewareName
+   * @return MiddlewareInterface
+   * @throws Exception
    */
-  public static function setMap($map) {
+  private function resolveMiddleware(string $middlewareName): MiddlewareInterface
+  {
+    if (!isset(self::$map[$middlewareName])) {
+      throw new Exception("Middleware '{$middlewareName}' not defined in the map.");
+    }
+
+    $middlewareClass = self::$map[$middlewareName];
+
+    if (!class_exists($middlewareClass)) {
+      throw new Exception("Middleware class '{$middlewareClass}' not found.");
+    }
+
+    $instance = new $middlewareClass();
+
+    if (!$instance instanceof MiddlewareInterface) {
+      throw new Exception("Class '{$middlewareClass}' must implement MiddlewareInterface.");
+    }
+
+    return $instance;
+  }
+
+  /**
+   * Executes the controller action and ensures the response is a Response object.
+   * @return Response
+   */
+  private function runController(): Response
+  {
+    $result = ($this->controller)(...$this->controllerArgs);
+
+    return $result instanceof Response
+      ? $result
+      : new Response(Response::HTTP_OK, (string) $result);
+  }
+
+  /**
+   * Sets the map of available middlewares.
+   * @param array<string, string> $map
+   * @return void
+   * @throws Exception
+   */
+  public static function setMap(array $map): void
+  {
+    foreach ($map as $name => $class) {
+      if (!is_string($name) || !is_string($class)) {
+        throw new Exception('Invalid middleware map format.');
+      }
+    }
+
     self::$map = $map;
   }
 
   /**
-   * Configura os middlewares padrões para todas as rotas da aplicação
-   *
-   * @param  array $defaultMiddlewares
+   * Sets the default middlewares.
+   * @param array<string> $defaultMiddlewares
    * @return void
    */
-  public static function setDefaultMiddlewares($defaultMiddlewares) {
+  public static function setDefaultMiddlewares(array $defaultMiddlewares): void
+  {
     self::$defaultMiddlewares = $defaultMiddlewares;
   }
 }

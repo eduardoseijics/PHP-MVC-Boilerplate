@@ -5,7 +5,7 @@ namespace App\Core;
 class View {
 
   /**
-   * Variáveis padrões da View
+   * View variables
    * @var array
    */
   private static array $vars; 
@@ -15,6 +15,7 @@ class View {
   }
 
   /**
+   * Get view content
    * @param string
    * @return string
    */

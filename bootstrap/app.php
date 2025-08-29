@@ -7,6 +7,7 @@ use App\Core\Database;
 use App\Core\Environment;
 
 // Middlewares
+use App\Http\Middlewares\Maintenance;
 use \App\Http\Middlewares\RequireAdminLogin;
 use \App\Http\Middlewares\RequireAdminLogout;
 use \App\Http\Middlewares\Queue as MiddlewareQueue;
@@ -36,8 +37,13 @@ define('URL_ADMIN', getenv('BASE_URL').'/admin');
 
 // Middlewares setup
 MiddlewareQueue::setMap([
-  'required-admin-logout'      => RequireAdminLogout::class,
-  'required-admin-login'       => RequireAdminLogin::class,
+    'required-admin-logout' => RequireAdminLogout::class,
+    'required-admin-login'  => RequireAdminLogin::class,
+    'maintenance'           => Maintenance::class
+]);
+
+MiddlewareQueue::setDefaultMiddlewares([
+  'maintenance'
 ]);
 
 View::init([
