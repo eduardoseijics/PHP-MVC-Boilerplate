@@ -7,20 +7,20 @@ use App\Http\Response;
 use Closure;
 use App\Session\Admin\Login as LoginSession;
 
-class RequireAdminLogin
+class RequireAdminLogin implements MiddlewareInterface
 {
 
   /**
-   * Executar as ações do middleware
-   *
+   * Middleware handler
    * @param  Request $request
    * @param  Closure $next
    * @return Response
    */
-  public function handle($request, $next) {
-    // Verifica se o usuário está logado
+  public function handle(Request $request, Closure $next): Response
+  {
+    // Check if the user is logged in
     if (!LoginSession::isLogged()) {
-      // Se não estiver logado, redireciona o cliente para a tela de login
+      // If the user isn't logged in, redirect to the login page
       $request->getRouter()->redirect('/admin/login');
     }
 

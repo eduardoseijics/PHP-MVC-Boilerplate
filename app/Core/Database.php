@@ -88,6 +88,7 @@ class Database
           PDO::ATTR_EMULATE_PREPARES => false,
         ]);
       } catch (PDOException $e) {
+        echo '<pre>'; print_r($e); echo '</pre>';exit;
         error_log('Database connection error: ' . $e->getMessage());
         throw new PDOException('Internal server error while connecting to the database.');
       }

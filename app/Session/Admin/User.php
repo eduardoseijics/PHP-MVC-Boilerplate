@@ -1,36 +1,37 @@
 <?php
 
 namespace App\Session\Admin;
-
-
-/**
- * Gerenciar login de usuário pela sessão de admin
- */
 class User {
 
   /**
-   * Inicia a sessão
-   *
+   * Starts the session
    * @return void
    */
-  private static function init() {
-    // Verificar se a sessão está ativa
+  private static function init(): void
+  {
+    // Check if the session is not already started
     if (session_status() != PHP_SESSION_ACTIVE) {
       session_start();
     }
   }
 
-  public static function isUserAllowed($userType) {
+  /**
+   * Checks if the user is allowed
+   * @param string $userType
+   * @return boolean
+   */
+  public static function isUserAllowed(string $userType): bool 
+  {
     self::init();    
-    return ($_SESSION['user']['tipo'] === 'admin' || $_SESSION['user']['tipo'] === $userType);
+    return ($_SESSION['user']['type'] === 'admin' || $_SESSION['user']['type'] === $userType);
   } 
 
   /**
-   * Verifica se o usuário logado é ádmin
-   *
+   * Checks if the user is an admin
    * @return boolean
    */
-  public static function isAdmin() {
-    return $_SESSION['user']['tipo'] == 'admin';
+  public static function isAdmin(): bool
+  {
+    return $_SESSION['user']['type'] == 'admin';
   }
 }

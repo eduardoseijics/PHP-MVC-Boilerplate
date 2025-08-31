@@ -172,7 +172,7 @@ class Router {
     $uri = $this->getUri();
 
     $httpMethod = $this->request->getHttpMethod();
-
+    
     foreach ($this->routes as $patternRoute => $methods) {
       if(preg_match($patternRoute, $uri, $matches)) {
         // Check if the HTTP method is allowed
@@ -244,9 +244,7 @@ class Router {
   {
     $fullUrl = $this->url . $route;
 
-    // 
     header("location: {$fullUrl}");
     exit;
   }
-
 }

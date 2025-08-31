@@ -1,0 +1,23 @@
+<div class="d-flex justify-content-center">
+  <div class="card mt-3 text-dark text-center">
+    <div class="card-header">
+      <h1>Login</h1>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{{URL}}/admin/login">
+        {{status}}
+        {{@csrf}}
+        <div class="mb-3">
+          <label for="email" class="form-label">Email address</label>
+          <input type="email" class="form-control" id="email" name="email" aria-describedby="emailHelp" required>
+          <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+        </div>
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+  </div>
+</div>
