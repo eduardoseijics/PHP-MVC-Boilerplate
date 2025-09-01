@@ -2,13 +2,13 @@
 
 namespace App\Controller\Admin;
 
+use App\Core\AuthManager;
 use Exception;
 use App\Core\View;
 use App\Utils\Alert;
 use App\Http\Request;
 use App\Http\Response;
 use App\Model\Entity\User;
-use App\Session\Admin\Login as AdminLogin;
 
 class Login extends Page
 {
@@ -44,7 +44,9 @@ class Login extends Page
       }
 
       // Create the login session
-      AdminLogin::login($user);
+      $obAuthManager = new AuthManager;
+      $obAuthManager->login($user);
+      
       // Redirect to admin home
       return $request->getRouter()->redirect('/admin');
     } catch (\Exception $e) {
