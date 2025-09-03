@@ -1,19 +1,12 @@
 <?php
 
-namespace App\Core;
+namespace App\Session\Admin;
 
 use App\Model\Entity\User;
 use App\Session\SessionManager;
 
 class AuthManager
 {
-  private SessionManager $session;
-
-  public function __construct()
-  {
-    $this->session = SessionManager::getInstance();
-  }
-
   /**
    * Login a user and store their data in the session.
    * @param User $user
@@ -21,14 +14,12 @@ class AuthManager
    */
   public function login(User $user): void
   {
-    if(!$user instanceof User) {
-      throw new \InvalidArgumentException('Invalid user');
-    }
-    
-    $this->session->set('auth', [
-      'id'       => $user->getId(),
-      'username' => $user->getName(),
-      'type'     => $user->getType()
+    SessionManager::set('auth', [
+      'user' => [
+        'id'       => $user->getId(),
+        'username' => $user->getName(),
+        'type'     => $user->getType()
+      ]
     ]);
   }
 
@@ -38,7 +29,7 @@ class AuthManager
    */
   public function logout(): void
   {
-    $this->session->remove('auth');
+    SessionManager::remove('auth');
   }
 
   /**
@@ -47,7 +38,8 @@ class AuthManager
    */
   public function check(): bool
   {
-    return $this->session->has('auth');
+    $auth = SessionManager::get('auth');
+    return isset($auth['user']['id']);
   }
 
   /**
@@ -56,8 +48,10 @@ class AuthManager
    */
   public function user(): ?array
   {
-    return $this->session->get('auth');
+    $auth = SessionManager::get('auth');
+    return isset($auth['user']) && is_array($auth['user']) ? $auth['user'] : null;
   }
+
 
   /**
    * Check if the user has a specific role.
@@ -67,6 +61,6 @@ class AuthManager
   public function hasRole(string $role): bool
   {
     $user = $this->user();
-    return $user && $user['type'] === $role;
+    return isset($user['type']) && $user['type'] === $role;
   }
 }

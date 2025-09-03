@@ -2,13 +2,11 @@
 
 namespace App\Controller\Admin;
 
-use App\Core\AuthManager;
-use Exception;
 use App\Core\View;
 use App\Utils\Alert;
 use App\Http\Request;
-use App\Http\Response;
-use App\Model\Entity\User;
+use App\Service\AuthService;
+use App\Session\Admin\AuthManager;
 
 class Login extends Page
 {
@@ -17,14 +15,20 @@ class Login extends Page
    * @param Request $request
    * @return string
    */
-  public static function getLogin(Request $request, string $message = '')
-  {
-    $vars = Alert::getFlash();
+public static function getLogin(Request $request): string
+{
+
+    $vars = [
+        'alert' => Alert::getAlert(), // Deve limpar a sessão aqui
+    ];
 
     $content = View::render('admin/login', $vars);
 
     return parent::getPage($content, 'Login | Admin');
-  }
+}
+
+  // Em outro lugar, você chamaria:
+  // LoginController::getLogin($request, 'Usuário ou senha inválidos.');
 
   /**
    * Set login action
@@ -33,24 +37,34 @@ class Login extends Page
    */
   public static function setLogin(Request $request): mixed
   {
-    try {
-      $postVars = $request->getPostVars();
-      $email    = $postVars['email'] ?? '';
-      $password = $postVars['password'] ?? '';
+    $postVars = $request->getPostVars();
+    $email = $postVars['email'] ?? '';
+    $password = $postVars['password'] ?? '';
 
-      $user = User::getUserByEmail($email);
-      if (!$user instanceof User || !password_verify($password, $user->getPassword())) {
-        return self::getLogin($request, 'E-mail or password invalid.');
-      }
+    // Use AuthService to validate user credentials
+    $authService = new AuthService;
+    $user = $authService->validateCredentials($email, $password);
 
-      // Create the login session
-      $obAuthManager = new AuthManager;
-      $obAuthManager->login($user);
-      
-      // Redirect to admin home
-      return $request->getRouter()->redirect('/admin');
-    } catch (\Exception $e) {
-      throw new Exception($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+    if (!$user) {
+      Alert::error('Email or password invaliadasdad.');
+      return $request->getRouter()->redirect('/admin/login');
     }
+
+    // Login the user
+    $auth = new AuthManager();
+    $auth->login($user);
+
+    return $request->getRouter()->redirect('/admin');
+  }
+
+
+  public static function setLogout(Request $request): mixed
+  {
+    // Destroy the login session
+    $obAuthManager = new AuthManager;
+    $obAuthManager->logout();
+
+    // Redirect to login
+    return $request->getRouter()->redirect('/admin/login');
   }
 }

@@ -2,10 +2,11 @@
 
 namespace App\Http\Middlewares;
 
+use Closure;
 use App\Http\Request;
 use App\Http\Response;
-use Closure;
-use App\Session\Admin\Login as LoginSession;
+use App\Session\Admin\AuthManager;
+
 
 class RequireAdminLogout {
 
@@ -18,7 +19,7 @@ class RequireAdminLogout {
    */
   public function handle($request, $next) {
     // Verifica se o usuário está logado
-    if (LoginSession::isLogged()) {
+    if ((new AuthManager)->check()) {
       // Se já estiver logado, redireciona para a página admin
       $request->getRouter()->redirect('/admin');
     }

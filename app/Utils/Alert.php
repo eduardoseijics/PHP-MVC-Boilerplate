@@ -3,61 +3,82 @@
 namespace App\Utils;
 
 use App\Core\View;
+use App\Session\SessionManager;
 
 class Alert
 {
-  const FLASH_KEY = 'flash_message';
+  private const SESSION_KEY = 'flash_alert';
 
   /**
-   * Set flash message
-   * @param string $message
-   * @param string $type
-   * @return void
+   * Define a flash message.
+   * 
    */
-  public static function flash(string $message, string $type = 'success'): void
+  public static function set(string $type, string $message): void
   {
-    $_SESSION[self::FLASH_KEY] = [
-      'message' => $message,
-      'type' => $type
-    ];
-  }
-
-  /**
-   * Get and remove flash message
-   * @return string
-   */
-  public static function getFlash(): string
-  {
-    if (!isset($_SESSION[self::FLASH_KEY])) {
-      return '';
-    }
-
-    $flash = $_SESSION[self::FLASH_KEY];
-    unset($_SESSION[self::FLASH_KEY]);
-    
-    return View::render('alert/status', [
-      'alertType' => $flash['type'] === 'success' ? 'success' : 'danger',
-      'message' => $flash['message']
+    SessionManager::set(self::SESSION_KEY, [
+      'type' => $type,
+      'message' => $message
     ]);
   }
 
   /**
-   * Shortcut for success
+   * Return message in html and cleans session
+   */
+  public static function getAlert(): string
+  {
+    if (!SessionManager::has(self::SESSION_KEY)) {
+      return '';
+    }
+
+    $flash = SessionManager::get(self::SESSION_KEY);
+
+    // Remove immediately so it doesn't show up again
+    SessionManager::remove(self::SESSION_KEY);
+
+    return View::render('alert/alert', [
+      'type' => $flash['type'],
+      'message' => $flash['message']
+    ]);
+  }
+
+
+  /**
+   * Define a success message.
    * @param string $message
    * @return void
    */
   public static function success(string $message): void
   {
-    self::flash($message, 'success');
+    self::set('success', $message);
   }
 
   /**
-   * Shortcut for error
+   * Define a error message.
    * @param string $message
    * @return void
    */
   public static function error(string $message): void
   {
-    self::flash($message, 'danger');
+    self::set('error', $message);
+  }
+
+  /**
+   * Define a warning message.
+   * @param string $message
+   * @return void
+   */
+  public static function warning(string $message): void
+  {
+    self::set('warning', $message);
+  }
+
+  /**
+   * Define a info message.
+   * @param string $message
+   * @return void
+   */
+  public static function info(string $message): void
+  {
+    self::set('info', $message);
   }
 }

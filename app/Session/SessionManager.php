@@ -4,80 +4,68 @@ namespace App\Session;
 
 class SessionManager
 {
-    private static ?SessionManager $instance = null;
-
-    /**
-     * Private constructor to prevent direct instantiation.
-     */
-    private function __construct()
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+  /**
+   * Start session if it hasn't been started yet.
+   */
+  public static function start(): void
+  {
+    if (session_status() === PHP_SESSION_NONE) {
+      session_start();
     }
+  }
 
-    /**
-     * Returns the singleton instance.
-     * 
-     */
-    public static function getInstance(): SessionManager
-    {
-        if (self::$instance === null) {
-            self::$instance = new SessionManager();
-        }
-        return self::$instance;
-    }
+  /**
+   * Define a session value.
+   * @param string $key The session key.
+   * @param mixed $value The value to be stored.
+   */
+  public static function set(string $key, mixed $value): void
+  {
+    self::start();
+    $_SESSION[$key] = $value;
+  }
 
-    /**
-     * Set a session value.
-     * @param string $key The session key.
-     * @param mixed $value The session value.
-     */
-    public function set(string $key, mixed $value): void
-    {
-        $_SESSION[$key] = $value;
-    }
+  /**
+   * Get a value from the session.
+   * @param string $key The session key.
+   * @param mixed $default Default value if key doesn't exist.
+   * @return mixed
+   */
+  public static function get(string $key, mixed $default = null): mixed
+  {
+    self::start();
+    return $_SESSION[$key] ?? $default;
+  }
 
-    /**
-     * Get a session value.
-     * @param string $key The session key.
-     * @param mixed $default Default value if the key does not exist.
-     * @return mixed
-     */
-    public function get(string $key, mixed $default = null): mixed
-    {
-        return $_SESSION[$key] ?? $default;
-    }
+  /**
+   * Verify if a key exists in the session.
+   * @param string $key The key to be checked.
+   * @return bool
+   */
+  public static function has(string $key): bool
+  {
+    self::start();
+    return isset($_SESSION[$key]);
+  }
 
-    /**
-     * Check if a session key exists.
-     * @param string $key The session key.
-     * @return bool
-     */
-    public function has(string $key): bool
-    {
-        return isset($_SESSION[$key]);
-    }
+  /**
+   * Remove a value from the session.
+   * @param string $key The key to be removed.
+   */
+  public static function remove(string $key): void
+  {
+    self::start();
+    unset($_SESSION[$key]);
+  }
 
-    /**
-     * Remove a session value.
-     * @param string $key The session key.
-     * @return void
-     */
-    public function remove(string $key): void
-    {
-        unset($_SESSION[$key]);
-    }
-
-    /**
-     * Destroy the session completely.
-     * @return void
-     */
-    public function destroy(): void
-    {
-        $_SESSION = [];
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_destroy();
-        }
-    }
+  /**
+   * Destroy the session and all its data.
+   * @return void
+   */
+  public static function destroy(): void
+  {
+    self::start();
+    session_unset();
+    session_destroy();
+  }
 }
