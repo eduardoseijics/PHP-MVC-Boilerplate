@@ -132,11 +132,11 @@ class User
   }
 
   /**
-   * Get an user by email
+   * Find an user by email
    * @param  string $email
    * @return User
    */
-  public static function getUserByEmail(string $email)
+  public static function findByEmail(string $email)
   {
     return (new Database('user'))->select("email = '$email' ")->fetchObject(self::class);
   }

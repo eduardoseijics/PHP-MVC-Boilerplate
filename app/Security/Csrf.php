@@ -2,6 +2,8 @@
 
 namespace App\Security;
 
+use App\Session\SessionManager;
+
 class Csrf
 {
   /**
@@ -20,16 +22,14 @@ class Csrf
    */
   public static function generateToken(): string
   {
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-      session_start();
-    }
+    SessionManager::start();
 
     // Only generate a new token if it doesn't exist
-    if (!isset($_SESSION[self::SESSION_KEY])) {
-      $_SESSION[self::SESSION_KEY] = bin2hex(random_bytes(32));
+    if (!SessionManager::has(self::SESSION_KEY)) {
+      SessionManager::set(self::SESSION_KEY, bin2hex(random_bytes(32)));
     }
 
-    return $_SESSION[self::SESSION_KEY];
+    return SessionManager::get(self::SESSION_KEY);
   }
 
   /**
@@ -58,28 +58,22 @@ class Csrf
    */
   public static function validateToken(?string $token): bool
   {
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-      session_start();
-    }
-
     // If no token in session or request, invalid
-    if (!isset($_SESSION[self::SESSION_KEY]) || empty($token)) {
+    if (!SessionManager::has(self::SESSION_KEY) || empty($token)) {
       return false;
     }
 
     // Timing attack safe comparison
-    return hash_equals($_SESSION[self::SESSION_KEY], (string) $token);
+    return hash_equals(SessionManager::get(self::SESSION_KEY), (string) $token);
   }
 
   /**
    * Optional: Invalidate token after successful validation (if you want one-time tokens)
+   * @return void
    */
   public static function invalidateToken(): void
   {
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-      session_start();
-    }
-
-    unset($_SESSION[self::SESSION_KEY]);
+    SessionManager::remove(self::SESSION_KEY);
   }
+
 }
