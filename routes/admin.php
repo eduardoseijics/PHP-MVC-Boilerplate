@@ -31,6 +31,7 @@ $obRouter->post('/admin/login', [
 
 $obRouter->post('/admin/logout', [
   'middlewares' => [
+    'csrf'
   ],
   function(Request $request) {
     return new Response(Response::HTTP_OK, Login::setLogout($request));

@@ -59,7 +59,7 @@ class Alert
    */
   public static function error(string $message): void
   {
-    self::set('error', $message);
+    self::set('danger', $message);
   }
 
   /**

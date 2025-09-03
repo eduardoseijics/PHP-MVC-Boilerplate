@@ -46,7 +46,7 @@ public static function getLogin(Request $request): string
     $user = $authService->validateCredentials($email, $password);
 
     if (!$user) {
-      Alert::error('Email or password invaliadasdad.');
+      Alert::error('Email or password invalid.');
       return $request->getRouter()->redirect('/admin/login');
     }
 
