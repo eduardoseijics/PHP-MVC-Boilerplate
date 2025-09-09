@@ -1,0 +1,17 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container">
+    <a href="{{URL_ADMIN}}" class="navbar-brand">Admin</a>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        {{links}}
+      </ul>
+
+      <div class="d-flex justify-content-end" style="width: 100%;">
+        <form action="{{URL_ADMIN}}/logout" method="POST">
+          {{@csrf}}
+          <button class="btn btn-outline-danger" type="submit">Sair</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</nav>

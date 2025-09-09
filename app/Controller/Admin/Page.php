@@ -3,37 +3,38 @@
 namespace App\Controller\Admin;
 
 use App\Core\View;
+use App\Controller\Admin\MenuController;
 
 class Page {
 
-  private static function getHeader() {
-    $vars = [
-      'topbar' => View::render('admin/pages/components/topbar')
-    ];
-    return View::render('admin/pages/components/header', $vars);
-  }
-
-  private static function getFooter() {
-    return View::render('admin/pages/components/footer');
-  }
-
+  /**
+   * Get the page
+   * @param string $content
+   * @param string $title
+   * @return string
+   */
   public static function getPage($content, $title = 'PHP MVC Boilerplate') {
 		return View::render('admin/base', [
 			'title' => $title,
-			'header' => self::getHeader(),
-			'content' => $content,
-			'footer' => self::getFooter()
+			'content' => $content
 		]);
   }
 
   /**
-   * Get a static page
-   * @param string $path
+   * Get a panel
    * @param string $title
+   * @param string $content
+   * @param string $currentModule
    * @return string
    */
-  public static function getStaticPage($path, $title = '') {
-    $content = View::render($path);
-    return self::getPage($content, $title);
+  public static function getPanel($title = '', $content = '', $currentModule = 'home'): string
+  {
+    $vars = [
+      'menu' => MenuController::getMenu($currentModule),
+      'content' => $content
+    ];
+    $panelContent = View::render('admin/panel', $vars);
+
+    return self::getPage($panelContent, $title);
   }
 }
