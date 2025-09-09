@@ -21,7 +21,7 @@ class RequireAdminLogin implements MiddlewareInterface
     // Check if the user is logged in
     if (!(new AuthManager)->check()) {
       // If the user isn't logged in, redirect to the login page
-      $request->getRouter()->redirect('/admin/login');
+      $request->getRouter()->redirect(URL_ADMIN.'/login');
     }
 
     return $next($request);
