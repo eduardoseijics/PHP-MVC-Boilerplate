@@ -11,6 +11,10 @@ final class TestimonialName
     }
   }
 
+  /**
+   * Returns the string value of the TestimonialName
+   * @return string
+   */
   public function value(): string
   {
     return $this->value;

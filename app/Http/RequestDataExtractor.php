@@ -69,6 +69,7 @@ class RequestDataExtractor
 
   /**
    * Get filters
+   * @return array
    */
   public function getFilters(): array
   {
@@ -77,6 +78,7 @@ class RequestDataExtractor
 
   /**
    * Get current page
+   * @return int
    */
   public function getCurrentPage(): int
   {
@@ -85,6 +87,7 @@ class RequestDataExtractor
 
   /**
    * Get items per page
+   * @return int
    */
   public function getItemsPerPage(): int
   {
@@ -93,6 +96,7 @@ class RequestDataExtractor
 
   /**
    * Returns the offset for paginated queries
+   * @return int
    */
   public function getOffset(): int
   {

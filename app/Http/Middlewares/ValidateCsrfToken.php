@@ -9,6 +9,13 @@ use App\Security\Csrf;
 
 class ValidateCsrfToken implements MiddlewareInterface
 {
+
+  /**
+   * Handle the middleware
+   * @param Request $request
+   * @param Closure $next
+   * @return Response
+   */
   public function handle(Request $request, Closure $next): Response
   {
     // Only validate CSRF token for state-changing methods

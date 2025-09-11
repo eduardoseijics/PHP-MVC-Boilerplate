@@ -15,20 +15,16 @@ class Login extends Page
    * @param Request $request
    * @return string
    */
-public static function getLogin(Request $request): string
-{
-
+  public static function getLogin(Request $request): string
+  {
     $vars = [
-        'alert' => Alert::getAlert(), // Deve limpar a sessão aqui
+      'alert' => Alert::getAlert()
     ];
 
     $content = View::render('admin/login', $vars);
 
     return parent::getPage($content, 'Login | Admin');
-}
-
-  // Em outro lugar, você chamaria:
-  // LoginController::getLogin($request, 'Usuário ou senha inválidos.');
+  }
 
   /**
    * Set login action
@@ -57,7 +53,11 @@ public static function getLogin(Request $request): string
     return $request->getRouter()->redirect('/admin');
   }
 
-
+  /**
+   * Set logout action
+   * @param Request $request
+   * @return mixed
+   */
   public static function setLogout(Request $request): mixed
   {
     // Destroy the login session
