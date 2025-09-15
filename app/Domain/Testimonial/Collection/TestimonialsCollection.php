@@ -65,4 +65,13 @@ final class TestimonialsCollection implements IteratorAggregate
   {
     return $this->items;
   }
+
+  /**
+   * Check if the collection is empty
+   * @return bool
+   */
+  public function isEmpty(): bool
+  {
+    return empty($this->items);
+  }
 }

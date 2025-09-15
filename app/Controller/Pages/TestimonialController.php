@@ -9,6 +9,7 @@ use App\Core\Pagination;
 use App\Utils\PaginationRenderer;
 use App\Http\RequestDataExtractor;
 use App\Domain\Testimonial\Service\CreateTestimonialService;
+use App\Domain\Testimonial\Collection\TestimonialsCollection;
 use App\Domain\Testimonial\Repository\PdoTestimonialRepository;
 
 final class TestimonialController extends Page
@@ -27,41 +28,81 @@ final class TestimonialController extends Page
     $this->service = $service;
   }
 
-  /**
-   * Render the testimonials page
-   * @param Request $request
-   * @return string
-   */
   public function renderTestimonials(Request $request): string
   {
     $extractor = new RequestDataExtractor($request);
-
     $currentPage  = $extractor->getCurrentPage();
     $itemsPerPage = $extractor->getItemsPerPage();
     $sort         = $extractor->getSort() ?? 'date DESC';
     $offset       = $extractor->getOffset();
 
-    $totalTestimonials = $this->repository->count();
-    $pagination = new Pagination($totalTestimonials, $currentPage, $itemsPerPage);
+    $pagination = $this->buildPagination($currentPage, $itemsPerPage);
+    $collection = $this->getTestimonials($offset, $itemsPerPage, $sort);
 
-    $collection = $this->repository->paginated($offset, $itemsPerPage, $sort);
-    $layout = '';
-    foreach ($collection as $testimonial) {
-      $layout .= View::render('pages/testimonials/testimonial-item', [
-        'name'    => $testimonial->name()->value(),
-        'message' => $testimonial->message()->value(),
-        'date'    => $testimonial->date()->value()->format('d/m/Y H:i:s')
-      ]);
+    // Redireciona se página inválida
+    if ($collection->isEmpty() && $currentPage > 1) {
+      $request->getRouter()->redirect('/testimonials');
     }
 
-    $content = View::render('pages/testimonials/testimonials', [
-      'testimonials' => $layout,
+    // Renderiza view vazia se não houver testimonials
+    if ($collection->isEmpty()) {
+      return $this->renderEmptyTestimonials($request, $pagination);
+    }
+
+    // Renderiza testimonials existentes
+    return $this->renderTestimonialsList($request, $collection, $pagination);
+  }
+
+  /**
+   * Cria objeto de paginação
+   */
+  private function buildPagination(int $currentPage, int $itemsPerPage): Pagination
+  {
+    $totalTestimonials = $this->repository->count();
+    return new Pagination($totalTestimonials, $currentPage, $itemsPerPage);
+  }
+
+  /**
+   * Busca testimonials paginados
+   */
+  private function getTestimonials(int $offset, int $limit, string $sort): TestimonialsCollection
+  {
+    return $this->repository->paginated($offset, $limit, $sort);
+  }
+
+  /**
+   * Renderiza a view quando não há testimonials
+   */
+  private function renderEmptyTestimonials(Request $request, Pagination $pagination): string
+  {
+    $content = View::render('pages/testimonials/empty', [
       'alert' => Alert::getAlert(),
       'pagination' => PaginationRenderer::render($request, $pagination)
     ]);
 
     return parent::getPage($content);
   }
+
+  /**
+   * Renderiza a lista de testimonials
+   */
+  private function renderTestimonialsList(Request $request, TestimonialsCollection $collection, Pagination $pagination): string
+  {
+    $testimonialItems = implode('', array_map(fn($t) => View::render('pages/testimonials/testimonial-item', [
+      'name'    => $t->name()->value(),
+      'message' => $t->message()->value(),
+      'date'    => $t->date()->value()->format('d/m/Y H:i:s')
+    ]), $collection->getArrayCopy()));
+
+    $content = View::render('pages/testimonials/testimonials', [
+      'testimonials' => $testimonialItems,
+      'alert' => Alert::getAlert(),
+      'pagination' => PaginationRenderer::render($request, $pagination)
+    ]);
+
+    return parent::getPage($content);
+  }
+
 
   /**
    * Insert a new testimonial
@@ -82,7 +123,5 @@ final class TestimonialController extends Page
     }
   }
 
-  public function getById($id)
-  {
-  }
+  public function getById($id) {}
 }
