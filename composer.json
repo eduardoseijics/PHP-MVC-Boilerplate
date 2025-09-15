@@ -10,5 +10,8 @@
         {
             "name": "Eduardo Seiji"
         }
-    ]
+    ],
+    "require": {
+        "php-di/php-di": "^7.1"
+    }
 }

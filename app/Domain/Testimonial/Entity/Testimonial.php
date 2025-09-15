@@ -8,11 +8,21 @@ use App\Domain\Testimonial\Entity\ValueObject\TestimonialMessage;
 
 final class Testimonial
 {
-  public function __construct(
+  private function __construct(
+    private ?int $id = null,
     private TestimonialName $name,
     private TestimonialMessage $message,
     private TestimonialDate $date
   ) {}
+
+  /**
+   * Get the value of id
+   * @return int|null
+   */
+  public function id(): ?int
+  {
+    return $this->id;
+  }
 
   /**
    * Get the value of name

@@ -3,13 +3,25 @@
 namespace App\Controller\Admin;
 
 use App\Core\View;
+use App\Utils\Alert;
 use App\Http\Request;
 use App\Core\Pagination;
-use App\Model\Entity\Testimonial;
 use App\Utils\PaginationRenderer;
 use App\Http\RequestDataExtractor;
+use App\Domain\Testimonial\Service\CreateTestimonialService;
+use App\Domain\Testimonial\Repository\PdoTestimonialRepository;
 
-class TestimonialController extends Page {
+class TestimonialController extends Page
+{
+  
+  private CreateTestimonialService $service;
+  private PdoTestimonialRepository $repository;
+
+  public function __construct()
+  {
+    $this->repository = new PdoTestimonialRepository();
+    $this->service = new CreateTestimonialService($this->repository);
+  }
 
   /**
    * Get testimonials page
@@ -18,30 +30,32 @@ class TestimonialController extends Page {
    */
   public static function getTestimonials(Request $request): string
   {
-    $obTestimonial     = new Testimonial;
-    $totalTestimonials = $obTestimonial->getTestimonialsCount();
-    $obRequestData     = new RequestDataExtractor($request);
-    $obPagination      = new Pagination($totalTestimonials, $obRequestData->getCurrentPage(), $obRequestData->getItemsPerPage());
-
-    $testimonials = $obTestimonial->getTestimonials(
-      order: $obRequestData->getSort() ?? 'date DESC',
-      limit: "{$obRequestData->getOffset()}, {$obRequestData->getItemsPerPage()}"
-    );
+    $repository        = new PdoTestimonialRepository;
+    $totalTestimonials = $repository->count();
+    $extractor         = new RequestDataExtractor($request);
+    
+    $currentPage  = $extractor->getCurrentPage();
+    $itemsPerPage = $extractor->getItemsPerPage();
+    $sort         = $extractor->getSort();
+    $offset       = $extractor->getOffset();
+    
+    $pagination        = new Pagination($totalTestimonials, $extractor->getCurrentPage(), $extractor->getItemsPerPage());
+    $testimonials = $repository->paginated($offset, $itemsPerPage, $sort);
 
     $layout = implode('', array_map(function ($testimonial) {
       return View::render('admin/modules/testimonials/testimonial-item', [
-        'id'      => $testimonial->getId(),
-        'name'    => $testimonial->getName(),
-        'message' => $testimonial->getMessage(),
-        'date'    => date('d/m/Y H:i:s', strtotime($testimonial->getDate()))
+        'id'      => $testimonial->id()->value(),
+        'name'    => $testimonial->name()->value(),
+        'message' => $testimonial->message()->value(),
+        'date'    => $testimonial->date()->value()->format('d/m/Y H:i:s') ?? ''
       ]);
-    }, $testimonials));
+    }, $testimonials->getArrayCopy()));
 
     $content = View::render('admin/modules/testimonials/index', [
       'testimonials' => $layout,
-      'pagination' => PaginationRenderer::render($request, $obPagination)
+      'pagination' => PaginationRenderer::render($request, $pagination)
     ]);
 
-    return parent::getPanel(content: $content);
+    return parent::getPanel(title: 'Admin | Testimonials', content: $content);
   }
 }

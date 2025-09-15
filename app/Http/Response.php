@@ -2,7 +2,8 @@
 
 namespace App\Http;
 
-class Response {
+class Response
+{
 
   const HTTP_CONTINUE                        = 100;
   const HTTP_SWITCHING_PROTOCOLS             = 101;
@@ -128,10 +129,9 @@ class Response {
   {
     $this->sendHeaders();
     switch ($this->contentType) {
-      case 'text/html':        
+      case 'text/html':
         echo $this->content;
         exit;
-        
     }
   }
 
@@ -146,9 +146,7 @@ class Response {
 
     //HEADERS
     foreach ($this->headers as $key => $value) {
-      header($key.':'.$value);
+      header($key . ':' . $value);
     }
   }
-
-  
 }

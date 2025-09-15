@@ -2,7 +2,7 @@
 
 require './bootstrap/app.php';
 
-$obRouter = new \App\Http\Router(URL);
+$obRouter = new \App\Http\Router(URL, $container);
 
 include __DIR__.'/routes/admin.php';
 

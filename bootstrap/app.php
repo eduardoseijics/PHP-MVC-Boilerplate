@@ -3,10 +3,11 @@
 require __DIR__ . '/../vendor/autoload.php';
 
 use App\Core\View;
-use App\Core\Database;
 
 // Middlewares
+use App\Core\Database;
 use App\Security\Csrf;
+use DI\ContainerBuilder;
 use App\Core\Environment;
 use App\Http\Middlewares\Maintenance;
 use App\Http\Middlewares\ValidateCsrfToken;
@@ -22,6 +23,11 @@ if (getenv('APP_DEBUG')) {
   ini_set('display_startup_errors', 1);
   error_reporting(E_ALL);
 }
+
+// DI
+$builder = new ContainerBuilder();
+$builder->useAutowiring(true);
+$container = $builder->build();
 
 // Database configuration
 Database::config(

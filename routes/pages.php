@@ -7,28 +7,22 @@ use App\Controller\Pages\About;
 use App\Controller\Pages\TestimonialController;
 
 $obRouter->get('/', [
-  'middlewares' => [
-    'maintenance'
-  ],
-  function() {
-    return new Response(Response::HTTP_OK, Home::getHome());
-  }
+  'middlewares' => ['maintenance'],
+  'controller' => [Home::class, 'getHome']
 ]);
 
 $obRouter->get('/about', [
-  function() {
-    return new Response(Response::HTTP_OK, About::getAbout());
-  }
+  'controller' => [About::class, 'getAbout']
 ]);
 
 $obRouter->get('/testimonials', [
-  function(Request $request) {
-    return new Response(Response::HTTP_OK, TestimonialController::renderTestimonials($request));
-  }
+  'controller' => [TestimonialController::class, 'renderTestimonials']
 ]);
 
 $obRouter->post('/testimonials', [
-  function(Request $request) {
-    return new Response(Response::HTTP_CREATED, TestimonialController::insertTestimonial($request));
-  }
+  'controller' => [TestimonialController::class, 'createTestimonial']
+]);
+
+$obRouter->get('/testimonials/{id}/{hash}', [
+  'controller' => [TestimonialController::class, 'getById']
 ]);

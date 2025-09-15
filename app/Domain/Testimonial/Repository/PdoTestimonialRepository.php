@@ -25,6 +25,18 @@ final class PdoTestimonialRepository implements TestimonialRepository
     $this->db = new Database('testimonials');
   }
 
+  public function findById(int $id): ?Testimonial
+  {
+    $stmt = $this->db->select('id = ?', [$id]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$row) {
+      return null;
+    }
+
+    return $this->hydrate($row);
+  }
+
   /**
    * Save a testimonial
    * @param Testimonial $testimonial
@@ -37,6 +49,26 @@ final class PdoTestimonialRepository implements TestimonialRepository
       'message' => $testimonial->message()->value(),
       'date'    => $testimonial->date()->value()->format('Y-m-d H:i:s')
     ]);
+  }
+
+  /**
+   * Update a testimonial
+   * @param Testimonial $testimonial
+   * @return bool
+   */
+  public function update(Testimonial $testimonial): bool
+  {
+    $data = [
+      'name'    => $testimonial->name()->value(),
+      'message' => $testimonial->message()->value(),
+    ];
+
+    $where = 'id = ?';
+    $params = [$testimonial->id()];
+
+    $affectedRows = $this->db->update($where, $data, $params);
+
+    return $affectedRows > 0;
   }
 
   /**
@@ -83,6 +115,7 @@ final class PdoTestimonialRepository implements TestimonialRepository
   private function hydrate(array $row): Testimonial
   {
     return new Testimonial(
+      (int) $row['id'],
       new TestimonialName($row['name']),
       new TestimonialMessage($row['message']),
       new TestimonialDate(new DateTimeImmutable($row['date']))

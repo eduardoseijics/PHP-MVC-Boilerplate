@@ -2,89 +2,72 @@
 
 namespace App\Http;
 
-use \Closure;
+use Closure;
 use Exception;
 use App\Http\Request;
-use ReflectionFunction;
+use ReflectionMethod;
 use App\Http\PageNotFound;
 use App\Http\Middlewares\Queue as MiddlewareQueue;
+use Psr\Container\ContainerInterface;
 
-class Router {
+class Router
+{
 
-  /**
-   * Url
-   * @var string
-   */
-  private $url = '';
-
-  /**
-   * Route prefix
-   * @var string
-   */
-  private $prefix = '';
-
-  
-  /**
-   * Route package
-   * @var string
-   */
-  private $package = '';
+  private string $url = '';
+  private string $prefix = '';
+  private string $package = '';
+  private array $routes = [];
+  private Request $request;
+  private ContainerInterface $container;
 
   /**
-   * Route definitions
-   * @var array
+   * Constructor
+   * @param string $url
+   * @param ContainerInterface $container
    */
-  private $routes = [];
-
-  /**
-   * Http request
-   * @var Request
-   */
-  private $request;
-
-  public function __construct($url) {
-    $this->request = new Request($this);
+  public function __construct(string $url, ContainerInterface $container)
+  {
     $this->url = $url;
+    $this->container = $container;
+    $this->request = new Request($this);
     $this->setPrefix();
     $this->setPackage();
   }
 
   /**
-   * Set route prefix
+   * Set the prefix based on the URL
    * @return void
    */
   private function setPrefix(): void
   {
     $parseUrl = parse_url($this->url);
-
     $this->prefix = $parseUrl['path'] ?? '';
   }
 
   /**
-   * Set the route package
+   * Set the package based on the URI
    * @return void
    */
   public function setPackage(): void
   {
     $xUri = explode('/', $this->getUri());
     unset($xUri[0]);
-
     $package = current($xUri);
-
-    if(empty(current($xUri))) $package = 'site';
-
+    if (empty($package)) $package = 'site';
     $this->package = $package;
   }
 
   /**
+   * Add a route to the router
    * @param string $method
    * @param string $route
    * @param array $params
+   * @return void
    */
-  private function addRoute($method, $route, $params = []) {
-
+  private function addRoute(string $method, string $route, array $params = []): void
+  {
     foreach ($params as $key => $value) {
-      if($value instanceof Closure) {
+      if ($value instanceof Closure) {
         $params['controller'] = $value;
         unset($params[$key]);
         continue;
@@ -92,67 +75,41 @@ class Router {
     }
 
     $params['middlewares'] = $params['middlewares'] ?? [];
-
     $params['variables'] = [];
 
-    $patternVariable = '/{(.*?)}/';
-
-    if(preg_match_all($patternVariable, $route, $matches)) {
-      $route = preg_replace($patternVariable,'(.*?)', $route);
+    if (preg_match_all('/{(.*?)}/', $route, $matches)) {
+      $route = preg_replace('/{(.*?)}/', '(.*?)', $route);
       $params['variables'] = $matches[1];
     }
 
-    $patternRoute = '/^'.str_replace('/','\/', $route).'$/';
-
+    $patternRoute = '/^' . str_replace('/', '\/', $route) . '$/';
     $this->routes[$patternRoute][$method] = $params;
   }
 
   /**
-   * Add a GET route
+   * Define a GET route
    * @param string $route
    * @param array $params
    * @return void
    */
-  public function get($route, $params = []): null
+  public function get(string $route, array $params = []): void
   {
-    return $this->addRoute('GET', $route, $params);
+    $this->addRoute('GET', $route, $params);
   }
 
   /**
-   * Add a POST route
+   * Define a POST route
    * @param string $route
    * @param array $params
    * @return void
    */
-  public function post($route, $params = []): null
+  public function post(string $route, array $params = []): void
   {
-    return $this->addRoute('POST', $route, $params);
+    $this->addRoute('POST', $route, $params);
   }
 
   /**
-   * Add a PUT route
-   * @param string $route
-   * @param array $params
-   * @return void
-   */
-  public function put($route, $params = []): null
-  {
-    return $this->addRoute('PUT', $route, $params);
-  }
-
-  /**
-   * Add a DELETE route
-   * @param string $route
-   * @param array $params
-   * @return void
-   */
-  public function delete($route, $params = []): null
-  {
-    return $this->addRoute('DELETE', $route, $params);
-  }
-
-  /**
-   * 
+   * Get the URI of the request, removing the prefix
    * @return string
    */
   private function getUri(): string
@@ -164,42 +121,32 @@ class Router {
   }
 
   /**
-   * Get the current route
-   * @return  array
+   * Resolve the current route
+   * @return array
+   * @throws Exception
    */
   private function getRoute(): array
   {
     $uri = $this->getUri();
-
     $httpMethod = $this->request->getHttpMethod();
-    
+
     foreach ($this->routes as $patternRoute => $methods) {
-      if(preg_match($patternRoute, $uri, $matches)) {
-        // Check if the HTTP method is allowed
-        if(isset($methods[$httpMethod])) {
+      if (preg_match($patternRoute, $uri, $matches)) {
+        if (isset($methods[$httpMethod])) {
           unset($matches[0]);
-
-          // Map variables
-          $keys                                         = $methods[$httpMethod]['variables'];
-          $methods[$httpMethod]['variables']            = array_combine($keys, $matches);
+          $keys = $methods[$httpMethod]['variables'];
+          $methods[$httpMethod]['variables'] = array_combine($keys, $matches);
           $methods[$httpMethod]['variables']['request'] = $this->request;
-
           return $methods[$httpMethod];
         }
-
         throw new Exception('Method not allowed', Response::HTTP_METHOD_NOT_ALLOWED);
       }
     }
-
     throw new Exception(PageNotFound::get404($this->package), Response::HTTP_NOT_FOUND);
   }
 
-  public function group($middlewares) {
-    
-  }
-
   /**
-   * 
+   * Run the router
    * @return Response
    */
   public function run(): Response
@@ -207,44 +154,80 @@ class Router {
     try {
       $route = $this->getRoute();
       
-      if(!isset($route['controller'])) {
+      if (!isset($route['controller'])) {
         throw new Exception('A URL não pode ser processada', Response::HTTP_INTERNAL_SERVER_ERROR);
       }
 
-      $args = [];
+      $controllerCallable = $route['controller'];
 
-      $reflection = new ReflectionFunction($route['controller']);
-      foreach ($reflection->getParameters() as $parameter) {
-        $name = $parameter->getName();
-        $args[$name] = $route['variables'][$name] ?? '';
+      // Se for array [Controller::class, 'metodo']
+      if (is_array($controllerCallable)) {
+        $instance = $this->container->get($controllerCallable[0]);
+        $method = $controllerCallable[1];
+
+        $reflection = new ReflectionMethod($instance, $method);
+        $args = [];
+
+        foreach ($reflection->getParameters() as $param) {
+          $paramType = $param->getType();
+
+          // 1. Sem type hint -> pega de variables
+          if (!$paramType) {
+            $args[] = $route['variables'][$param->getName()] ?? null;
+            continue;
+          }
+
+          $paramClass = $paramType->getName();
+
+          // 2. Se for Request
+          if ($paramClass === Request::class) {
+            $args[] = $this->request;
+            continue;
+          }
+
+          // 3. Tipos primitivos
+          if (in_array($paramClass, ['string', 'int', 'float', 'bool'])) {
+            $value = $route['variables'][$param->getName()] ?? null;
+
+            if ($value !== null) {
+              settype($value, $paramClass);
+            }
+
+            $args[] = $value;
+            continue;
+          }
+
+          // 4. Classes -> Container
+          $args[] = $this->container->get($paramClass);
+        }
+
+        $controllerCallable = fn() => $instance->{$method}(...$args);
       }
 
-      return (new MiddlewareQueue($route['middlewares'], $route['controller'], $args))->next($this->request);
-
-      return call_user_func_array($route['controller'], $args);
+      return (new MiddlewareQueue($route['middlewares'], $controllerCallable))
+        ->next($this->request);
     } catch (Exception $e) {
       return new Response(Response::HTTP_INTERNAL_SERVER_ERROR, $e->getMessage());
     }
   }
 
-/**
- * Get the current URL
- * @return string
- */
-  public function getCurrentUrl(): string {
+  /**
+   * Get the current URL of the request
+   * @return string
+   */
+  public function getCurrentUrl(): string
+  {
     return $this->url . $this->getUri();
   }
 
   /**
-   * Redirect to a different route
+   * Redirect to another route
    * @param string $route
    * @return void
    */
-  public function redirect($route)
+  public function redirect(string $route): void
   {
-    $fullUrl = $this->url . $route;
-
-    header("location: {$fullUrl}");
+    header("Location: {$this->url}{$route}");
     exit;
   }
 }
