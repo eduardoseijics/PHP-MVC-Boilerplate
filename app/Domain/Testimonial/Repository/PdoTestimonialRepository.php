@@ -42,9 +42,9 @@ final class PdoTestimonialRepository implements TestimonialRepository
    * @param Testimonial $testimonial
    * @return void
    */
-  public function save(Testimonial $testimonial): void
+  public function save(Testimonial $testimonial): int
   {
-    $this->db->insert([
+    return $this->db->insert([
       'name'    => $testimonial->name()->value(),
       'message' => $testimonial->message()->value(),
       'date'    => $testimonial->date()->value()->format('Y-m-d H:i:s')
@@ -115,10 +115,10 @@ final class PdoTestimonialRepository implements TestimonialRepository
   private function hydrate(array $row): Testimonial
   {
     return new Testimonial(
-      (int) $row['id'],
-      new TestimonialName($row['name']),
-      new TestimonialMessage($row['message']),
-      new TestimonialDate(new DateTimeImmutable($row['date']))
+      id     : (int) $row['id'],
+      name   : new TestimonialName($row['name']),
+      message: new TestimonialMessage($row['message']),
+      date   : new TestimonialDate(new DateTimeImmutable($row['date']))
     );
   }
 }

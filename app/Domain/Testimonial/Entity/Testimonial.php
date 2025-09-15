@@ -8,11 +8,11 @@ use App\Domain\Testimonial\Entity\ValueObject\TestimonialMessage;
 
 final class Testimonial
 {
-  private function __construct(
-    private ?int $id = null,
+  public function __construct(
     private TestimonialName $name,
     private TestimonialMessage $message,
-    private TestimonialDate $date
+    private TestimonialDate $date,
+    private ?int $id = null
   ) {}
 
   /**
