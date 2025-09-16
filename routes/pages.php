@@ -1,10 +1,8 @@
 <?php
 
-use App\Http\Request;
-use App\Http\Response;
 use App\Controller\Pages\Home;
 use App\Controller\Pages\About;
-use App\Controller\Pages\TestimonialController;
+use App\Infrastructure\Http\Controller\TestimonialController;
 
 $obRouter->get('/', [
   'middlewares' => ['maintenance'],
@@ -20,7 +18,7 @@ $obRouter->get('/testimonials', [
 ]);
 
 $obRouter->post('/testimonials', [
-  'controller' => [TestimonialController::class, 'createTestimonial']
+  'controller' => [TestimonialController::class, 'insertTestimonial']
 ]);
 
 $obRouter->get('/testimonials/{id}/{hash}', [

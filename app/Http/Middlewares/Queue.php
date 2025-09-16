@@ -5,7 +5,11 @@ namespace App\Http\Middlewares;
 use Closure;
 use Exception;
 use App\Http\Request;
-use App\Http\Response;
+use App\Http\HttpStatus;
+use App\Infrastructure\Http\Response\Response;
+use App\Infrastructure\Http\Response\HtmlResponse;
+use App\Infrastructure\Http\Response\JsonResponse;
+use App\Infrastructure\Http\Response\RedirectResponse;
 
 /**
  * Represents the queue of middlewares to be executed.
@@ -61,7 +65,7 @@ class Queue
    * @return Response
    * @throws Exception
    */
-  public function next(Request $request): Response
+  public function next(Request $request)
   {
     // If the middleware queue is empty, execute the controller.
     if (empty($this->middlewares)) {
@@ -112,9 +116,28 @@ class Queue
   {
     $result = ($this->controller)(...$this->controllerArgs);
 
-    return $result instanceof Response
-      ? $result
-      : new Response(Response::HTTP_OK, (string) $result);
+    // Se já for um Response (HtmlResponse, JsonResponse, etc.), retorna direto
+    if ($result instanceof Response) {
+      return $result;
+    }
+
+    // Se for array → assume JSON por convenção
+    if (is_array($result)) {
+      return new JsonResponse($result);
+    }
+
+    // Se for string → assume HTML por convenção
+    if (is_string($result)) {
+      return new HtmlResponse($result);
+    }
+
+    // Se for null → responde 204 No Content
+    if ($result === null) {
+      return new Response(HttpStatus::NO_CONTENT);
+    }
+
+    // Qualquer outra coisa → fallback
+    return new Response(HttpStatus::OK, (string) $result);
   }
 
   /**

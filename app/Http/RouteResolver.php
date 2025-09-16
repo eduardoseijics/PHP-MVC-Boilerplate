@@ -3,6 +3,7 @@
 namespace App\Http;
 
 use Exception;
+use App\Http\HttpStatus;
 
 class RouteResolver
 {
@@ -19,7 +20,7 @@ class RouteResolver
     foreach ($this->routes as $pattern => $methods) {
       if (preg_match($pattern, $uri, $matches)) {
         if (!isset($methods[$method])) {
-          throw new Exception('Method not allowed', Response::HTTP_METHOD_NOT_ALLOWED);
+          throw new Exception('Method not allowed', HttpStatus::METHOD_NOT_ALLOWED);
         }
 
         unset($matches[0]);
@@ -28,13 +29,13 @@ class RouteResolver
         $methods[$method]['variables']['request'] = $this->request;
 
         if (!isset($methods[$method]['controller'])) {
-          throw new Exception('Controller não definido para esta rota', Response::HTTP_INTERNAL_SERVER_ERROR);
+          throw new Exception('Controller não definido para esta rota', HttpStatus::INTERNAL_SERVER_ERROR);
         }
 
         return $methods[$method];
       }
     }
 
-    throw new Exception(PageNotFound::get404('site'), Response::HTTP_NOT_FOUND);
+    throw new Exception(PageNotFound::get404('site'), HttpStatus::NOT_FOUND);
   }
 }

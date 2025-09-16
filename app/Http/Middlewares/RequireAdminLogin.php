@@ -4,7 +4,7 @@ namespace App\Http\Middlewares;
 
 use Closure;
 use App\Http\Request;
-use App\Http\Response;
+use App\Infrastructure\Http\Response\Response;
 use App\Session\Admin\AuthManager;
 
 class RequireAdminLogin implements MiddlewareInterface

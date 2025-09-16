@@ -8,6 +8,9 @@ use App\Http\Request;
 use ReflectionMethod;
 use App\Http\PageNotFound;
 use App\Http\Middlewares\Queue as MiddlewareQueue;
+use App\Infrastructure\Http\Response\HtmlResponse;
+use App\Infrastructure\Http\Response\JsonResponse;
+use App\Infrastructure\Http\Response\Response;
 use Psr\Container\ContainerInterface;
 
 class Router
@@ -129,7 +132,6 @@ class Router
   {
     $uri = $this->getUri();
     $httpMethod = $this->request->getHttpMethod();
-
     foreach ($this->routes as $patternRoute => $methods) {
       if (preg_match($patternRoute, $uri, $matches)) {
         if (isset($methods[$httpMethod])) {
@@ -139,10 +141,10 @@ class Router
           $methods[$httpMethod]['variables']['request'] = $this->request;
           return $methods[$httpMethod];
         }
-        throw new Exception('Method not allowed', Response::HTTP_METHOD_NOT_ALLOWED);
+        throw new Exception('Method not allowed', HttpStatus::METHOD_NOT_ALLOWED->value);
       }
     }
-    throw new Exception(PageNotFound::get404($this->package), Response::HTTP_NOT_FOUND);
+    throw new Exception(PageNotFound::get404($this->package), HttpStatus::NOT_FOUND->value);
   }
 
   /**
@@ -155,7 +157,7 @@ class Router
       $route = $this->getRoute();
       
       if (!isset($route['controller'])) {
-        throw new Exception('A URL não pode ser processada', Response::HTTP_INTERNAL_SERVER_ERROR);
+        throw new Exception('A URL não pode ser processada', HttpStatus::INTERNAL_SERVER_ERROR->value);
       }
 
       $controllerCallable = $route['controller'];
@@ -207,7 +209,7 @@ class Router
       return (new MiddlewareQueue($route['middlewares'], $controllerCallable))
         ->next($this->request);
     } catch (Exception $e) {
-      return new Response(Response::HTTP_INTERNAL_SERVER_ERROR, $e->getMessage());
+      return new HtmlResponse( $e->getMessage(), HttpStatus::INTERNAL_SERVER_ERROR->value);
     }
   }
 

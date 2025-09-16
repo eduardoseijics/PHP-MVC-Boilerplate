@@ -5,8 +5,8 @@ namespace App\Domain\Testimonial\Service;
 use App\Domain\Testimonial\Entity\Testimonial;
 use App\Domain\Testimonial\Entity\ValueObject\TestimonialDate;
 use App\Domain\Testimonial\Entity\ValueObject\TestimonialName;
-use App\Domain\Testimonial\Repository\PdoTestimonialRepository;
 use App\Domain\Testimonial\Entity\ValueObject\TestimonialMessage;
+use App\Infrastructure\Persistence\Testimonial\PdoTestimonialRepository;
 
 final class CreateTestimonialService
 {

@@ -2,9 +2,10 @@
 
 namespace App\Http\Middlewares;
 
+use App\Http\HttpStatus;
 use Closure;
 use App\Http\Request;
-use App\Http\Response;
+use App\Infrastructure\Http\Response\Response;
 
 class Maintenance implements MiddlewareInterface{
 
@@ -20,7 +21,7 @@ class Maintenance implements MiddlewareInterface{
       // If the request is not for the admin area, show maintenance message
       if(strpos($request->getUri(), URL_ADMIN) === false){
         $content = '<h1>Site Under Maintenance</h1><p>We are currently performing scheduled maintenance. Please check back later.</p>';
-        return new Response(Response::HTTP_SERVICE_UNAVAILABLE, $content);
+        return new Response(HttpStatus::SERVICE_UNAVAILABLE, $content);
       }
     }
     return $next($request);

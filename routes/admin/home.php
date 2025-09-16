@@ -5,10 +5,6 @@ use App\Http\Response;
 use App\Controller\Admin\HomeController;
 
 $obRouter->get('/admin', [
-  'middlewares' => [
-    'required-admin-login',
-  ],
-  function(Request $request) {
-    return new Response(Response::HTTP_OK, HomeController::getHome($request));
-  }
+  'middlewares' => ['required-admin-login'],
+  'controller' => [HomeController::class, 'getHome']
 ]);

@@ -9,7 +9,7 @@ use App\Core\Pagination;
 use App\Utils\PaginationRenderer;
 use App\Http\RequestDataExtractor;
 use App\Domain\Testimonial\Service\CreateTestimonialService;
-use App\Domain\Testimonial\Repository\PdoTestimonialRepository;
+use App\Infrastructure\Persistence\Testimonial\PdoTestimonialRepository;
 
 class TestimonialController extends Page
 {

@@ -8,7 +8,7 @@ use App\Http\Request;
 use App\Service\AuthService;
 use App\Session\Admin\AuthManager;
 
-class Login extends Page
+class LoginController extends Page
 {
   /**
    * Get login page

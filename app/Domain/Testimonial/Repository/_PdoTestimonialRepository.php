@@ -47,7 +47,7 @@ final class PdoTestimonialRepository implements TestimonialRepository
     return $this->db->insert([
       'name'    => $testimonial->name()->value(),
       'message' => $testimonial->message()->value(),
-      'date'    => $testimonial->date()->value()->format('Y-m-d H:i:s')
+      'date'    => $testimonial->date()->value()
     ]);
   }
 
@@ -118,7 +118,7 @@ final class PdoTestimonialRepository implements TestimonialRepository
       id     : (int) $row['id'],
       name   : new TestimonialName($row['name']),
       message: new TestimonialMessage($row['message']),
-      date   : new TestimonialDate(new DateTimeImmutable($row['date']))
+      date   : new TestimonialDate((new DateTimeImmutable($row['date'])))
     );
   }
 }
